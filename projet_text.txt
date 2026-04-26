@@ -1,0 +1,343 @@
+Atelier Machine Learning
+Analyse Comportementale Clientèle Retail
+Module Machine Learning - GI2-
+Atelier Pratique : E-commerce de Cadeaux
+Préparé par Fadoua Drira
+Document pédagogique — Chaîne complète de traitement
+Exploration→Préparation→Modélisation→Évaluation→Déploiement
+Année Univeristaire : 2025-2026
+Analyse Comportementale Clientèle Atelier Machine Learning
+1 Configuration de l’environnement de travail
+Ce projet doit être réalisé sousVS Codepuis déposé (push) sur votreGitHubqui sera fourni
+pour évaluation.
+1.1 Structure du projet
+Créez l’arborescence suivante :
+1p r o j e t _ m l _ r e t a i l /
+2| - - data / # Base de donnees
+3| | - - raw / # Donnees brutes o r i g i n a l e s
+4| | - - p ro ces se d / # Donnees ne tt oy ee s
+5| \ - - t r a i n _ t e s t / # Donnees s pli tt ee s ( train / test )
+6| - - no teb oo ks / # N ot ebo ok s Jupyter ( p r o t o t y p a g e )
+7| - - src / # Scripts Python ( p r o d u c t i o n )
+8| | - - p r e p r o c e s s i n g . py
+9| | - - t r a i n _ m o d e l . py
+10| | - - predict . py
+11| \ - - utils . py
+12| - - models / # Modeles s a u v e g a r d e s (. pkl , . joblib )
+13| - - app / # A p p l i c a t i o n web ( Flask )
+14| - - reports / # Rapports et v i s u a l i s a t i o n s
+15| - - r e q u i r e m e n t s . txt # D e p e n d a n c e s ( genere via pip freeze )
+16| - - README . md # D o c u m e n t a t i o n
+17\ - - . gi ti gno re
+1.2 Environnement virtuel
+1# Creation de l ’ e n v i r o n n e m e n t virtuel
+2python -m venv venv
+3
+4# A c t i v a t i o n
+5# Windows :
+6venv \ Scripts \ activate
+1.3 Fichier requirements.txt
+Ce fichier liste toutes les dépendances nécessaires au projet. Il se génère automatiquement :
+1# Generer le fichier apres i n s t a l l a t i o n des packages
+2pip freeze > r e q u i r e m e n t s . txt
+3
+4# Utilite : permet a q ui co nq ue de r e p r o d u i r e e x a c t e m e n t
+5# le meme e n v i r o n n e m e n t avec :
+6pip install -r r e q u i r e m e n t s . txt
+1.4 Fichier README.md
+Un fichierREADME.mddoit être créé contenant :
+— Titre et description du projet
+— Instructions d’installation (environnement virtuel, dépendances)
+— Structure du projet expliquée
+— Guide d’utilisation (comment exécuter les scripts)
+Page 1
+Analyse Comportementale Clientèle Atelier Machine Learning
+2 Contexte & Mission
+Vous êtesdata scientistau sein d’une entreprisee-commerce de cadeaux. L’entreprise souhaite
+mieux comprendre sa clientèle pour :
+— Personnaliser ses stratégies marketing
+— Réduire le taux de départ des clients (churn)
+— Optimiser son chiffre d’affaires
+Vous disposez d’unebase de données complexe, regroupant52 featuresissues de transac-
+tions réelles et de données complémentaires. Cette base est intentionnellement imparfaite pour vous
+permettre de maîtriser l’ensemble de la chaîne de traitement en data science.
+3 Objectifs pédagogiques
+Compétence Description
+Exploration Analyser la qualité et la structure des données
+Préparation Nettoyer, encoder et normaliser les features
+T ransformation Réduire la dimension via ACP
+Modélisation Appliquer clustering, classification et régression
+Évaluation Interpréter les résultats et proposer des recommandations
+Déploiement Créer une interface utilisateur avec Flask
+4 Synthèse des features
+4.1 Features numériques (1-17)
+N°F eature Type Description Intervalle Unité
+1 CustomerID Entier Identifiant unique client 10000 - 99999 -
+2 Recency Entier Jours écoulés depuis dernier
+achat
+0 - 400 jours
+3 Frequency Entier Nombre de commandes
+distinctes
+1 - 50 cmd
+4 MonetaryTotal Float Somme totale dépensée -5000 - 15000 £
+5 MonetaryAvg Float Montant moyen par
+commande
+5 - 500 £
+6 MonetaryStd Float Écart-type des dépenses 0 - 500 £
+7 MonetaryMin Float Dépense minimale
+enregistrée
+-5000 - 5000 £
+8 MonetaryMax Float Dépense maximale
+enregistrée
+0 - 10000 £
+9 TotalQuantity Entier Quantité totale d’articles -10000 - 100000 unités
+10 AvgQtyPerTrans Float Moyenne articles par
+commande
+1 - 1000 unités
+11 MinQuantity Entier Quantité minimale
+commandée
+-8000 - 0 unités
+12 MaxQuantity Entier Quantité maximale
+commandée
+1 - 8000 unités
+13 CustomerTenure Entier Durée relation client 0 - 730 jours
+14 FirstPurchase Entier Ancienneté premier achat 0 - 730 jours
+15 PreferredDay Entier Jour semaine favori 0 (Lun) - 6 (Dim) -
+16 PreferredHour Entier Heure journée favorite 0 - 23 h
+17 PreferredMonth Entier Mois année favori 1 - 12 -
+Page 2
+Analyse Comportementale Clientèle Atelier Machine Learning
+4.2 Features numériques (18-34)
+N°F eature Type Description Intervalle Unité
+18 WeekendRatio Float Proportion achats weekend 0.0 - 1.0 ratio
+19 AvgDaysBetween Float Délai moyen entre
+commandes
+0 - 365 jours
+20 UniqueProducts Entier Nombre produits différents 1 - 1000 prod
+21 UniqueDesc Entier Nombre descriptions
+uniques
+1 - 1000 desc
+22 AvgProdPerTrans Float Produits distincts par cmd 1 - 100 prod
+23 UniqueCountries Entier Nombre pays associés 1 - 5 pays
+24 NegQtyCount Entier Lignes quantité négative 0 - 100 occ
+25 ZeroPriceCount Entier Lignes prix nul 0 - 50 occ
+26 CancelledTrans Entier Transactions annulées 0 - 50 trans
+27 ReturnRatio Float Taux retour (qty négatives) 0.0 - 1.0 ratio
+28 TotalTrans Entier Total lignes
+transactionnelles
+1 - 10000 lignes
+29 UniqueInvoices Entier Factures distinctes 1 - 500 fact
+30 AvgLinesPerInv Float Lignes par facture moyenne 1 - 100 lignes
+31 Age Float Âge estimé client 18 - 81 ouNaNans
+32 SupportTickets Float Tickets support ouverts-1, 0-15,999tickets
+33 Satisfaction Float Note satisfaction-1,0, 1-5,99/5
+34 Churn Binaire Indicateur départ client0(fidèle),1(parti) -
+4.3 Features catégorielles (35-43)
+N°F eature Card. Description V aleurs Encodage
+35 RFMSegment 4 Segment valeur
+client
+Champions, Fidèles,
+Potentiels, Dormants
+Ord/One-Hot
+36 AgeCategory 7 Tranche âge client 18-24, 25-34, ..., 65+,
+Inconnu
+Ordinal
+37 SpendingCat 4 Niveau dépense Low, Medium, High,
+VIP
+Ordinal
+38 CustomerType 5 Profil
+comportemental
+Hyperactif, Régulier,
+Occasionnel, Nouveau,
+Perdu
+One-Hot
+39 FavoriteSeason 4 Saison achat préférée Hiver, Printemps, Été,
+Automne
+One-Hot/Cycl
+40 PreferredTime 5 Moment journée
+favori
+Matin, Midi,
+Après-midi, Soir, Nuit
+Ord/One-Hot
+41 Region 8 Région géographique UK, Europe
+(N/S/E/C), Asie, Autre
+One-Hot
+42 LoyaltyLevel 5 Niveau ancienneté Nouveau, Jeune, Établi,
+Ancien, Inconnu
+Ordinal
+43 ChurnRisk 4 Niveau risque départ Faible, Moyen, Élevé,
+Critique
+Ordinal
+4.4 Features catégorielles (44-52)
+N°F eature Card. Description V aleurs Encodage
+44 WeekendPref 3 Préférence
+temporelle
+Weekend, Semaine, Inconnu One-Hot
+45 BasketSize 4 Taille habituelle
+panier
+Petit, Moyen, Grand,
+Inconnu
+Ordinal
+46 ProdDiversity 3 Diversité achats Spécialisé, Modéré,
+Explorateur
+One-Hot
+47 Gender 3 Genre client M, F, Unknown One-Hot
+Suite page suivante
+Page 3
+Analyse Comportementale Clientèle Atelier Machine Learning
+Suite du tableau
+N°F eature Card. Description V aleurs Encodage
+48 AccountStatus 4 État compte Active, Suspended,
+Pending, Closed
+One-Hot
+49 Country 37+ Pays résidence UK, France, Germany, etc. Target Enc
+50 Newsletter 1 Abonnement
+newsletter
+Y es(unique)Suppr.
+51 RegistDate Var. Date inscription
+texte
+"12/03/10", "2010-03-12" Parsing
+52 LastLoginIP Unique Adresse IP dernière
+connexion
+"192.168.1.45" Feature Eng.
+5 Problèmes de qualité à résoudre
+Type F eatures F réq. T raitement
+V aleurs
+manquantes
+Age 30% Imputation (moyenne,
+médiane, KNN)
+V aleurs
+aberrantes
+SupportTickets,
+Satisfaction
+5-8% Détection et correction
+F ormats
+inconsistants
+RegistrationDate 100% Parsing et standardisation
+F eature inutile NewsletterSubscribed 100% cst Suppression
+Données brutes LastLoginIP 100% Extraction sous-features
+Déséquilibre
+classes
+AccountStatus,
+Churn
+Var. Rééquilibrage
+6 Exploration et Préparation des Données
+6.1 Exemples de fonctions à explorer
+Voici les étapes clés à implémenter dans vos scripts Python
+(notamment dansutils.pyetpreprocessing.py) :
+1. StandardScaler et Normalisation
+StandardScaler: Centre les données (moyenne = 0) et réduit (écart-type = 1). Essentiel pour
+les algorithmes sensibles aux échelles (SVM, KNN, Régression logistique, Réseaux de neurones).
+Note :Fairefit_transformsur tout le dataset avant le split = fuite de données (data leakage).
+La variable target (y) ne JAMAIS normaliser - C’est l’objectif a predire, pas une feature
+2. Corrélation des F eatures et Multicolinéarité
+Corrélation: Mesure la relation linéaire entre deux variables (-1 à 1). À explorer avec une
+heatmap.
+Multicolinéarité: Quand plusieurs features sont fortement corrélées entre elles (ex : Moneta-
+ryTotal et MonetaryAvg). Problème pour la régression linéaire/logistique.
+Solutions :
+— Matrice de corrélation avec seuil (supprimer si|corrélation|> 0.8)
+— VIF (Variance Inflation Factor) : VIF > 10 = multicolinéarité sévère
+— Conserver celle ayant le plus de sens métier
+Page 4
+Analyse Comportementale Clientèle Atelier Machine Learning
+3. Analyse en Composantes Principales (ACP)
+Objectif :Réduire la dimension (52 features→2-10 composantes) tout en conservant l’infor-
+mation.
+Utilité :
+— Visualisation en 2D/3D
+— Réduction du bruit
+— Accélération des calculs
+— Éviter la malédiction de la dimensionnalité
+Méthode :Décomposer la variance pour trouver les axes principaux d’inertie.
+4. F eature Engineering
+Création de nouvelles features à partir des existantes pour capturer plus d’information :
+1# Ratio depenses / recency
+2df [ ’ M o n e t a r y P e r D a y ’] = df [ ’ M o n e t a r y T o t a l ’] / ( df [ ’ Recency ’] + 1)
+3
+4# Panier moyen
+5df [ ’ A v g B a s k e t V a l u e ’] = df [ ’ M o n e t a r y T o t a l ’] / df [ ’ F re qu enc y ’]
+6
+7# A n c i e n n e t e vs activite recente
+8df [ ’ T e n u r e R a t i o ’] = df [ ’ Recency ’] / df [ ’ C u s t o m e r T e n u r e ’]
+9
+10# E x t r a c t i o n de features depuis R e g i s t r a t i o n D a t e
+11df [ ’ RegYear ’] = pd . t o _ d a t e t i m e ( df [ ’ R e g i s t r a t i o n D a t e ’ ]) . dt . year
+12df [ ’ RegMonth ’] = pd . t o _ d a t e t i m e ( df [ ’ R e g i s t r a t i o n D a t e ’ ]) . dt . month
+5. Suppression des F eatures Inutiles
+Critères de suppression :
+— Variance nulle (ex : NewsletterSubscribed = toujours "Yes")
+— Trop de valeurs manquantes (>50%)
+— Forte corrélation avec une autre feature (redondance)
+— Importance nulle dans les modèles arborescents
+6. Imputation des V aleurs Manquantes
+Imputing= Remplacer les valeurs manquantes (NaN) par des valeurs substitutives.
+Méthodes :
+—Moyenne/Médiane :Pour données numériques symétriques/asymétriques
+—Mode :Pour données catégorielles
+—KNN Imputer :Remplace par la moyenne des k plus proches voisins
+—Iterative Imputer :Régression pour prédire les valeurs manquantes
+—V aleur constante :-999, "Inconnu" (pour marquer comme manquant)
+Important :L’imputation se fait surX_trainpuis on applique la même transformation sur
+X_test(comme pour le StandardScaler).
+Page 5
+Analyse Comportementale Clientèle Atelier Machine Learning
+7. Parsing de Données
+Parsing= Analyser et convertir des données d’un format brut vers un format structuré exploi-
+table.
+Exemple avec RegistrationDate :
+1import pandas as pd
+2
+3# Probleme : formats i n c o n s i s t a n t s
+4# " 1 2 / 0 3 / 1 0 " ( UK ) , "2010 -03 -12" ( ISO ) , " 0 3 / 1 2 / 2 0 1 0 " ( US )
+5
+6# Solution : parser avec t o _ d a t e t i m e ( infer le format )
+7df [ ’ R e g i s t r a t i o n D a t e ’] = pd . t o _ d a t e t i m e ( df [ ’ R e g i s t r a t i o n D a t e ’] ,
+8dayfirst = True , # Priorite UK
+9errors = ’ coerce ’) # NaT si erreur
+10
+11# E x t r a c t i o n de features
+12df [ ’ RegYear ’] = df [ ’ R e g i s t r a t i o n D a t e ’ ]. dt . year
+13df [ ’ RegMonth ’] = df [ ’ R e g i s t r a t i o n D a t e ’ ]. dt . month
+14df [ ’ RegDay ’] = df [ ’ R e g i s t r a t i o n D a t e ’ ]. dt . day
+15df [ ’ R e g W e e k d a y ’] = df [ ’ R e g i s t r a t i o n D a t e ’ ]. dt . weekday
+Autres exemples de parsing :
+—LastLoginIP :Extraire le pays via GeoIP, détecter si IP privée/publique
+—T exte :Tokenization, extraction de mots-clés (descriptions produits)
+7 Modélisation Avancée
+7.1 Séparation Train/Test
+Obligatoirepour évaluer la performance réelle du modèle sur des données jamais vues.
+1from sklearn . m o d e l _ s e l e c t i o n import t r a i n _ t e s t _ s p l i t
+2
+3# S e p a r a t i o n 80% train - 20% test ( s t r a t i f i e e pour preserve la d i s t r i b u t i o n )
+4X_train , X_test , y_train , y_test = t r a i n _ t e s t _ s p l i t (
+5X , y ,
+6t es t_ si ze =0.2 ,
+7r a n d o m _ s t a t e =42 , # R e p r o d u c t i b i l i t e
+8stratify = y # Co ns er ve r p r o p o r t i o n classes ( i mpo rt an t pour Churn )
+9)
+10
+11# S a u v e g a r d e dans data / t r a i n _ t e s t /
+12X_train . to_csv ( ’ data / t r a i n _ t e s t / X_train . csv ’ , index = False )
+13X_test . to_csv ( ’ data / t r a i n _ t e s t / X_test . csv ’ , index = False )
+14y_train . to_csv ( ’ data / t r a i n _ t e s t / y_train . csv ’ , index = False )
+15y_test . to_csv ( ’ data / t r a i n _ t e s t / y_test . csv ’ , index = False )
+7.2 Recherche des Meilleurs Hyperparamètres
+GridSearchCVtestetouteslescombinaisonspossiblesd’hyperparamètresetsélectionnelameilleure
+via validation croisée.
+Optunaest plus intelligent que GridSearch : il utilise les résultats précédents pour guider la
+recherche (plus rapide, moins de combinaisons testées).
+Page 6
+Analyse Comportementale Clientèle Atelier Machine Learning
+8 Déploiement : Interface avec Flask
+8.1 Pourquoi Flask ?
+Flaskest un micro-framework Python léger et flexible, idéal pour :
+— Créer des API REST pour servir vos modèles ML
+— Développer rapidement une interface web simple
+— Intégrer facilement avec des modèles scikit-learn
+— Apprendre les bases du déploiement ML sans complexité excessive
+Alternatives :FastAPI (plus rapide, async), Django (plus lourd, complet), Streamlit (très simple
+pour data apps).
+Bon courage pour cet atelier pratique !
+N’hesitez pas a consulter la documentation accessible sur le Web pour avancer.
+Page 7

@@ -1,0 +1,71 @@
+PLAN DE PRÉSENTATION : ANALYSE COMPORTEMENTALE CLIENTÈLE RETAIL (12 SLIDES)
+
+-------------------------------------------------------------------------------
+PARTIE 1 : CONTEXTE ET APPROCHE (Slides 1 - 2)
+-------------------------------------------------------------------------------
+SLIDE 1 : Introduction, Contexte & Objectifs
+- Problématique métier : Pertes de revenus liées au "Churn" (départ client) dans l'e-commerce.
+- Mission : Analyser les comportements pour anticiper ces départs.
+- Objectif technique : Mettre en place une chaîne ML complète (Exploration > Préparation > Modélisation > Déploiement).
+
+SLIDE 2 : Méthodologie & Architecture du Projet
+- Organisation du travail : Versioning (Git/GitHub), environnement virtuel Python.
+- Architecture modulaire : Séparation claire en dossiers (data/, src/, models/, app/).
+- Outils : `preprocessing.py` pour la donnée, `train_model.py` pour le modèle, `app.py` pour le web.
+
+-------------------------------------------------------------------------------
+PARTIE 2 : TRAITEMENT DES DONNÉES (Slides 3 - 6)
+-------------------------------------------------------------------------------
+SLIDE 3 : Le Jeu de Données & Problèmes Identifiés
+- Description : Base de données de 52 features (démographiques, transactionnelles, comportementales).
+- Variable cible : "Churn" (Départ = 1, Fidèle = 0).
+- Défis (Exploration) : Valeurs manquantes, formats de date inconsistants, variables inutiles.
+
+SLIDE 4 : Nettoyage & Feature Engineering (Ingénierie)
+- Parsing : Standardisation des dates et extraction (Année, Mois, Jour).
+- Création de valeur (Feature Engineering) : Calcul de la Dépense Journalière, du Panier Moyen, et du Ratio d'Ancienneté.
+- Nettoyage : Suppression des features non pertinentes (ex: IP, Newsletter).
+
+SLIDE 5 : Transformation, Imputation & Scaling
+- Imputation : Remplacement des valeurs manquantes (Médiane pour le numérique, Mode pour le catégoriel).
+- Encodage : Transformation des variables textuelles via One-Hot Encoding.
+- Mise à l'échelle (StandardScaler) : Centrer et réduire les données pour optimiser l'apprentissage.
+
+SLIDE 6 : Le Pipeline de Traitement & Séparation
+- Séparation Stratifiée (Train/Test Split) : 80% entraînement, 20% test, en préservant le ratio de Churn.
+- Prévention du Data Leakage : Le *scaler* et l'*imputer* sont ajustés (fit) uniquement sur le jeu d'entraînement.
+
+-------------------------------------------------------------------------------
+PARTIE 3 : MODÉLISATION ET ÉVALUATION (Slides 7 - 9)
+-------------------------------------------------------------------------------
+SLIDE 7 : Modélisation : Choix de l'Algorithme
+- Modèle sélectionné : Random Forest Classifier.
+- Pourquoi ? : Excellente gestion des données tabulaires, résistance aux données aberrantes (outliers), et interprétabilité (Feature Importance).
+
+SLIDE 8 : Optimisation des Hyperparamètres
+- Problématique : Comment trouver la meilleure configuration pour notre forêt aléatoire ?
+- Solution : Utilisation de GridSearchCV (Validation Croisée).
+- Paramètres testés : Nombre d'arbres (`n_estimators`), Profondeur (`max_depth`), Séparation (`min_samples_split`).
+
+SLIDE 9 : Évaluation des Performances du Modèle
+- Analyse des résultats sur le jeu de données de Test (jamais vu par le modèle).
+- Métriques clés : Précision (Accuracy), mais surtout le Rapport de Classification (Precision, Recall, F1-Score).
+- Sauvegarde : Exportation du meilleur modèle (best_model.pkl).
+
+-------------------------------------------------------------------------------
+PARTIE 4 : DÉPLOIEMENT ET CONCLUSION (Slides 10 - 12)
+-------------------------------------------------------------------------------
+SLIDE 10 : Déploiement : Architecture de l'API Flask
+- Objectif : Rendre le modèle accessible hors du code Python.
+- Choix de Flask : Framework léger et parfait pour des API REST.
+- Mécanisme : Un routeur HTTP (POST `/predict`) reçoit des données client en JSON, interroge le modèle et renvoie une probabilité.
+
+SLIDE 11 : Démonstration : Dashboard Interactif
+- L'Interface : Création d'une interface web dynamique, stylisée (Dark mode, Glassmorphism).
+- Processus : L'interface calcule en direct les features dérivées avant d'appeler l'API.
+- Rendu Visuel : Affichage immédiat d'une jauge colorée (Rouge/Vert) avec le pourcentage de risque de départ.
+
+SLIDE 12 : Conclusion, Impact Métier & Perspectives
+- Bilan : Succès de l'intégration de bout en bout (Data -> ML -> Web).
+- Valeur Métier : L'équipe marketing possède un outil concret pour cibler les clients à risque et proposer des offres de rétention.
+- Perspectives : Intégrer MLOps pour le ré-entraînement continu, héberger l'application sur le Cloud (AWS/GCP).
