@@ -19,6 +19,12 @@ def load_resources():
     return model, scaler, feature_names
 
 def predict(input_data, model, scaler, feature_names):
+    # Calculate derived features mathematically correctly
+    if 'MonetaryTotal' in input_data and 'Recency' in input_data:
+        input_data['MonetaryPerDay'] = input_data['MonetaryTotal'] / (input_data['Recency'] + 1)
+    if 'MonetaryTotal' in input_data and 'Frequency' in input_data:
+        input_data['AvgBasketValue'] = input_data['MonetaryTotal'] / input_data['Frequency'] if input_data['Frequency'] > 0 else 0
+        
     df = pd.DataFrame([input_data])
     
     # Ensure all columns match training data

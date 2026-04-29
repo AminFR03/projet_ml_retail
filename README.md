@@ -10,21 +10,22 @@ L'arborescence du projet est structurée comme suit :
 ```
 projet_ml_retail/
 |-- data/             # Base de données
-|   |-- raw/          # Données brutes originales
-|   |-- processed/    # Données nettoyées (optionnel)
+|   |-- raw/          # Données brutes originales (dataset.csv)
+|   |-- processed/    # Données nettoyées (cleaned_dataset.csv)
 |   \-- train_test/   # Données splittées (X_train, X_test, etc.)
-|-- notebooks/        # Notebooks Jupyter pour l'exploration et le prototypage
+|-- notebooks/        # Notebooks Jupyter pour l'exploration et le prototypage (exploration.ipynb)
 |-- src/              # Scripts Python pour la chaîne de production
 |   |-- preprocessing.py  # Script de préparation des données et feature engineering
 |   |-- train_model.py    # Entraînement du modèle avec GridSearchCV
 |   |-- predict.py        # Script de prédiction utilisant le modèle entraîné
 |   \-- utils.py          # Fonctions utilitaires (parseurs, imputers, scalers)
-|-- models/           # Modèles sauvegardés (scaler.pkl, best_model.pkl, etc.)
+|-- models/           # Modèles sauvegardés (scaler.pkl, best_model.pkl, feature_names.pkl)
 |-- app/              # Application web (Flask)
 |   \-- app.py        # Point d'entrée de l'API Flask
-|-- reports/          # Rapports et visualisations
+|-- reports/          # Rapports et visualisations (training_report.txt, confusion_matrix.png, feature_importances.png)
 |-- requirements.txt  # Dépendances du projet (généré via pip freeze)
 |-- README.md         # Documentation du projet
+|-- PROJECT_EXPLANATION.md # Explications détaillées du projet
 \-- .gitignore        # Fichiers à ignorer par git
 ```
 

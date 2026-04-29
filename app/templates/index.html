@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retail Churn — Analyse IA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #060d1f;
+      --panel: rgba(15, 23, 42, 0.85);
+      --border: rgba(255,255,255,0.08);
+      --primary: #6366f1;
+      --green: #10b981;
+      --red: #ef4444;
+      --text: #f1f5f9;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(99,102,241,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(16,185,129,0.10) 0%, transparent 60%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    /* ── Header ─────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    header p {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 0.95rem;
+    }
+
+    /* ── Main layout ─────────────────────────── */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 480px 1fr;
+      gap: 28px;
+      width: 100%;
+      max-width: 1200px;
+      align-items: start;
+    }
+
+    /* ── Profile cards ───────────────────────── */
+    .profile-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      backdrop-filter: blur(16px);
+      padding: 28px 24px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+    .profile-card:hover {
+      transform: translateY(-4px);
+    }
+    .profile-card.loyal {
+      border-color: rgba(16,185,129,0.25);
+      box-shadow: 0 0 0 0 rgba(16,185,129,0);
+    }
+    .profile-card.loyal:hover {
+      box-shadow: 0 8px 32px rgba(16,185,129,0.2);
+    }
+    .profile-card.risky {
+      border-color: rgba(239,68,68,0.25);
+    }
+    .profile-card.risky:hover {
+      box-shadow: 0 8px 32px rgba(239,68,68,0.2);
+    }
+
+    .profile-card .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+    .loyal .badge { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+    .risky .badge { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+
+    .profile-card h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .profile-card .profile-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: var(--muted); }
+    .stat-value { font-weight: 700; }
+    .loyal .stat-value { color: #34d399; }
+    .risky .stat-value { color: #f87171; }
+
+    .use-profile-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .loyal .use-profile-btn {
+      background: rgba(16,185,129,0.2);
+      color: #34d399;
+      border: 1px solid rgba(16,185,129,0.35);
+    }
+    .loyal .use-profile-btn:hover {
+      background: rgba(16,185,129,0.35);
+      transform: translateY(-1px);
+    }
+    .risky .use-profile-btn {
+      background: rgba(239,68,68,0.2);
+      color: #f87171;
+      border: 1px solid rgba(239,68,68,0.35);
+    }
+    .risky .use-profile-btn:hover {
+      background: rgba(239,68,68,0.35);
+      transform: translateY(-1px);
+    }
+
+    /* ── Form panel ──────────────────────────── */
+    .form-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      padding: 36px 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .form-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 6px;
+      color: #c4b5fd;
+    }
+    .form-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #94a3b8;
+      margin-bottom: 7px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(8,15,35,0.7);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: white;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s ease;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 8px 24px rgba(99,102,241,0.35);
+      letter-spacing: 0.3px;
+    }
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(99,102,241,0.5);
+    }
+    .submit-btn:active { transform: translateY(1px); }
+    .submit-btn.loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    /* ── Result card ─────────────────────────── */
+    #resultCard {
+      margin-top: 24px;
+      border-radius: 16px;
+      padding: 0;
+      overflow: hidden;
+      display: none;
+      animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 22px 16px;
+    }
+    .result-icon {
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+    .result-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+    .result-sub {
+      font-size: 0.78rem;
+      margin-top: 2px;
+      opacity: 0.75;
+    }
+
+    /* Gauge */
+    .gauge-wrap {
+      padding: 0 22px 22px;
+    }
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .gauge-track {
+      height: 10px;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+    .gauge-fill {
+      height: 100%;
+      border-radius: 5px;
+      width: 0%;
+      transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .gauge-pct {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-top: 10px;
+    }
+    .gauge-pct-label {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Metrics row */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 0 22px 22px;
+    }
+    .metric-box {
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+    }
+    .metric-box .m-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 4px;
+    }
+    .metric-box .m-value {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    /* Green / Red theming for result */
+    .res-loyal { background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.05)); border: 1px solid rgba(16,185,129,0.25); }
+    .res-loyal .result-title, .res-loyal .gauge-pct { color: #34d399; }
+    .res-loyal .gauge-fill { background: linear-gradient(90deg, #059669, #34d399); }
+
+    .res-risky { background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.05)); border: 1px solid rgba(239,68,68,0.25); }
+    .res-risky .result-title, .res-risky .gauge-pct { color: #f87171; }
+    .res-risky .gauge-fill { background: linear-gradient(90deg, #b91c1c, #f87171); }
+
+    /* ── Responsive ──────────────────────────── */
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+      .profile-card { display: none; }
+      body { padding: 24px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🛒 Retail Churn Intelligence</h1>
+    <p>Analysez le comportement client et anticipez le risque de départ</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- LEFT: Loyal client profile -->
+    <div class="profile-card loyal" id="loyalCard" onclick="loadProfile('loyal')">
+      <div class="badge">✅ Profil type</div>
+      <h2>Client Fidèle</h2>
+      <p class="profile-desc">Achète régulièrement, valeur élevée, très engagé avec la marque.</p>
+      <div class="stat-row"><span class="stat-label">Dernier achat</span><span class="stat-value">5 jours</span></div>
+      <div class="stat-row"><span class="stat-label">Nb commandes</span><span class="stat-value">20</span></div>
+      <div class="stat-row"><span class="stat-label">Chiffre d'affaires</span><span class="stat-value">£ 1 500</span></div>
+      <div class="stat-row"><span class="stat-label">Âge</span><span class="stat-value">40 ans</span></div>
+      <button class="use-profile-btn" onclick="event.stopPropagation(); loadProfile('loyal')">↩ Utiliser ce profil</button>
+    </div>
+
+    <!-- CENTER: Form -->
+    <div class="form-panel">
+      <p class="form-title">🔍 Analyse prédictive</p>
+      <p class="form-subtitle">Saisissez les données ou choisissez un profil type</p>
+
+      <form id="predForm">
+        <div class="field-grid">
+          <div class="field">
+            <label>Dernier achat (jours)</label>
+            <input type="number" id="recency" value="15" min="0" required>
+          </div>
+          <div class="field">
+            <label>Nb de commandes</label>
+            <input type="number" id="frequency" value="8" min="1" required>
+          </div>
+          <div class="field">
+            <label>Chiffre d'affaires (£)</label>
+            <input type="number" id="monetary" value="400" step="1" required>
+          </div>
+          <div class="field">
+            <label>Âge du client</label>
+            <input type="number" id="age" value="35" min="18" required>
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" id="submitBtn">Analyser le risque de départ →</button>
+      </form>
+
+      <!-- Result card -->
+      <div id="resultCard">
+        <div class="result-header">
+          <div class="result-icon" id="resIcon"></div>
+          <div>
+            <div class="result-title" id="resTitle"></div>
+            <div class="result-sub" id="resSub"></div>
+          </div>
+        </div>
+        <div class="gauge-wrap">
+          <div class="gauge-labels"><span id="gLabel0"></span><span id="gLabel1"></span></div>
+          <div class="gauge-track"><div class="gauge-fill" id="gaugeFill"></div></div>
+          <div class="gauge-pct" id="gaugePct"></div>
+          <div class="gauge-pct-label" id="gaugePctLabel"></div>
+        </div>
+        <div class="metrics-row">
+          <div class="metric-box">
+            <div class="m-label">Statut</div>
+            <div class="m-value" id="mStatus"></div>
+          </div>
+          <div class="metric-box">
+            <div class="m-label">Confiance modèle</div>
+            <div class="m-value" id="mConf"></div>
+          </div>
+          <div class="metric-box">
+            <div class="m-label">Prob. fidèle</div>
+            <div class="m-value" id="mLoyal"></div>
+          </div>
+          <div class="metric-box">
+            <div class="m-label">Prob. départ</div>
+            <div class="m-value" id="mChurn"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: At-risk client profile -->
+    <div class="profile-card risky" id="riskyCard" onclick="loadProfile('risky')">
+      <div class="badge">⚠️ Profil type</div>
+      <h2>Client À Risque</h2>
+      <p class="profile-desc">Long inactif, peu de commandes, faible valeur, risque de départ élevé.</p>
+      <div class="stat-row"><span class="stat-label">Dernier achat</span><span class="stat-value">250 jours</span></div>
+      <div class="stat-row"><span class="stat-label">Nb commandes</span><span class="stat-value">2</span></div>
+      <div class="stat-row"><span class="stat-label">Chiffre d'affaires</span><span class="stat-value">£ 50</span></div>
+      <div class="stat-row"><span class="stat-label">Âge</span><span class="stat-value">22 ans</span></div>
+      <button class="use-profile-btn" onclick="event.stopPropagation(); loadProfile('risky')">↩ Utiliser ce profil</button>
+    </div>
+
+  </div><!-- /.layout -->
+
+  <script>
+    function loadProfile(type) {
+      if (type === 'loyal') {
+        document.getElementById('recency').value   = 5;
+        document.getElementById('frequency').value = 20;
+        document.getElementById('monetary').value  = 1500;
+        document.getElementById('age').value       = 40;
+        flashCard('loyalCard', '#10b981');
+      } else {
+        document.getElementById('recency').value   = 250;
+        document.getElementById('frequency').value = 2;
+        document.getElementById('monetary').value  = 50;
+        document.getElementById('age').value       = 22;
+        flashCard('riskyCard', '#ef4444');
+      }
+    }
+
+    function flashCard(id, color) {
+      const el = document.getElementById(id);
+      el.style.boxShadow = `0 0 0 3px ${color}`;
+      setTimeout(() => el.style.boxShadow = '', 500);
+    }
+
+    document.getElementById('predForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.textContent = 'Analyse en cours…';
+      btn.classList.add('loading');
+
+      const payload = {
+        Recency:       parseFloat(document.getElementById('recency').value),
+        Frequency:     parseFloat(document.getElementById('frequency').value),
+        MonetaryTotal: parseFloat(document.getElementById('monetary').value),
+        Age:           parseFloat(document.getElementById('age').value)
+      };
+
+      try {
+        const res  = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        showResult(data);
+      } catch(err) {
+        alert("Erreur de connexion au serveur.");
+      } finally {
+        btn.textContent = 'Analyser le risque de départ →';
+        btn.classList.remove('loading');
+      }
+    });
+
+    function showResult(data) {
+      const card      = document.getElementById('resultCard');
+      const isChurn   = data.prediction === 1;
+      const probChurn = (data.probability[1] * 100).toFixed(1);
+      const probLoyal = (data.probability[0] * 100).toFixed(1);
+      const conf      = Math.max(data.probability[0], data.probability[1]) * 100;
+
+      // Theme
+      card.className = isChurn ? 'res-risky' : 'res-loyal';
+
+      document.getElementById('resIcon').textContent  = isChurn ? '⚠️' : '✅';
+      document.getElementById('resTitle').textContent = isChurn ? 'Risque de départ ÉLEVÉ' : 'Client FIDÈLE';
+      document.getElementById('resSub').textContent   = isChurn
+        ? 'Ce client présente un risque de churn significatif.'
+        : 'Ce client est susceptible de rester fidèle.';
+
+      // Gauge
+      const gaugeVal = isChurn ? probChurn : probLoyal;
+      document.getElementById('gLabel0').textContent    = isChurn ? '0% risque' : '0% fidélité';
+      document.getElementById('gLabel1').textContent    = isChurn ? '100% risque' : '100% fidélité';
+      document.getElementById('gaugePct').textContent   = gaugeVal + '%';
+      document.getElementById('gaugePctLabel').textContent = isChurn
+        ? 'Probabilité de départ'
+        : 'Probabilité de fidélité';
+
+      // Metrics
+      document.getElementById('mStatus').textContent  = isChurn ? '🔴 À risque' : '🟢 Fidèle';
+      document.getElementById('mConf').textContent    = conf.toFixed(1) + '%';
+      document.getElementById('mLoyal').textContent   = probLoyal + '%';
+      document.getElementById('mChurn').textContent   = probChurn + '%';
+
+      // Show card
+      card.style.display = 'block';
+
+      // Animate gauge after a tick
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          document.getElementById('gaugeFill').style.width = gaugeVal + '%';
+        }, 50);
+      });
+    }
+  </script>
+</body>
+</html>
