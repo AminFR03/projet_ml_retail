@@ -39,7 +39,16 @@ def generate_full_dummy_dataset(num_samples=500):
         'Age': np.random.uniform(18, 81, num_samples),
         'SupportTicketsCount': np.random.uniform(-1, 15, num_samples),
         'SatisfactionScore': np.random.uniform(-1, 5, num_samples),
-        'Churn': np.random.choice([0, 1], num_samples, p=[0.8, 0.2]),
+    }
+
+    # Calculate realistic Churn based on Recency, Frequency, and MonetaryTotal
+    # High recency -> higher churn. High frequency/monetary -> lower churn.
+    logit = (data['Recency'] - 150) / 50.0 - (data['Frequency'] - 10) / 5.0 - (data['MonetaryTotal'] - 500) / 1000.0
+    prob_churn = 1.0 / (1.0 + np.exp(-logit))
+    prob_churn = np.clip(prob_churn, 0.05, 0.95)
+    data['Churn'] = np.random.binomial(1, prob_churn)
+
+    data.update({
         'RFMSegment': np.random.choice(['Champions', 'Fideles', 'Potentiels', 'Dormants'], num_samples),
         'AgeCategory': np.random.choice(['18-24', '25-34', '35-44', '45-54', '55-64', '65+', 'Inconnu'], num_samples),
         'SpendingCategory': np.random.choice(['Low', 'Medium', 'High', 'VIP'], num_samples),
@@ -58,7 +67,7 @@ def generate_full_dummy_dataset(num_samples=500):
         'NewsletterSubscribed': ['Yes'] * num_samples,
         'RegistrationDate': pd.date_range(start='2010-01-01', periods=num_samples).strftime('%d/%m/%y').tolist(),
         'LastLoginIP': [f"192.168.1.{np.random.randint(1, 255)}" for _ in range(num_samples)]
-    }
+    })
 
     df = pd.DataFrame(data)
     
